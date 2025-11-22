@@ -2,7 +2,7 @@
 #define MENU_H
 
 #include "../main.h"
-#include "ranking.h"
+#include "history.h"
 
 // Botões do menu
 typedef struct {
