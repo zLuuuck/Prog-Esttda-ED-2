@@ -106,7 +106,7 @@ void handle_events() {
             case GAME_PAUSED:
                 handle_pause_events(&e);
                 break;
-            case RANKING:
+            case HISTORY:
                 if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE) {
                     game.current_state = MENU_MAIN;
                 }
@@ -146,8 +146,8 @@ void render() {
             render_game(); // Renderiza o jogo por baixo
             render_pause_menu();
             break;
-        case RANKING:
-            render_ranking();
+        case HISTORY:
+            render_history();
             break;
         case CREDITS:
             draw_text("CREDITOS - EM BREVE", (SCREEN_WIDTH - 250) / 2, 100, 32, (SDL_Color){255, 255, 255, 255});

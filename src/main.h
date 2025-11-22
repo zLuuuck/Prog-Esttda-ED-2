@@ -17,7 +17,7 @@ typedef enum {
     MENU_PLAYER_INPUT,
     GAME_ACTIVE,
     GAME_PAUSED,
-    RANKING,
+    HISTORY,
     CREDITS
 } GameState;
 

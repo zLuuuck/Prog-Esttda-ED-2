@@ -6,7 +6,7 @@
 #include <stdlib.h>
 
 // Botões do menu principal
-Button play_button, ranking_button, credits_button, exit_button;
+Button play_button, history_button, credits_button, exit_button;
 Button start_button, back_button;
 Button resume_button, pause_exit_button;
 
@@ -24,7 +24,7 @@ void init_menu() {
     int center_y = SCREEN_HEIGHT / 2 - 100;
 
     play_button = (Button){{center_x, center_y, 200, 50}, "Jogar", false};
-    ranking_button = (Button){{center_x, center_y + 70, 200, 50}, "Ranking", false};
+    history_button = (Button){{center_x, center_y + 70, 200, 50}, "history", false};
     credits_button = (Button){{center_x, center_y + 140, 200, 50}, "Creditos", false};
     exit_button = (Button){{center_x, center_y + 210, 200, 50}, "Sair", false};
     
@@ -81,7 +81,7 @@ void handle_menu_events(SDL_Event *e)
 
     // Atualiza estado de hover dos botões
     play_button.hovered = is_point_in_rect(mouse_x, mouse_y, play_button.rect);
-    ranking_button.hovered = is_point_in_rect(mouse_x, mouse_y, ranking_button.rect);
+    history_button.hovered = is_point_in_rect(mouse_x, mouse_y, history_button.rect);
     credits_button.hovered = is_point_in_rect(mouse_x, mouse_y, credits_button.rect);
     exit_button.hovered = is_point_in_rect(mouse_x, mouse_y, exit_button.rect);
 
@@ -104,9 +104,9 @@ void handle_menu_events(SDL_Event *e)
                 strcpy(player_input, "");
             }
         }
-        else if (ranking_button.hovered)
+        else if (history_button.hovered)
         {
-            game.current_state = RANKING;
+            game.current_state = HISTORY;
         }
         else if (credits_button.hovered)
         {
@@ -220,7 +220,7 @@ void render_menu()
 
     // Desenha botões
     draw_button(&play_button);
-    draw_button(&ranking_button);
+    draw_button(&history_button);
     draw_button(&credits_button);
     draw_button(&exit_button);
 }
