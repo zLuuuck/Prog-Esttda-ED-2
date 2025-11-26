@@ -26,6 +26,7 @@ typedef struct {
     int score;
     int lines_cleared;
     int level;
+    int blocks_placed;
 } GameStats;
 
 // Estrutura para o jogo
@@ -36,14 +37,5 @@ typedef struct {
     GameStats current_game;
     bool is_new_player;
 } Game;
-
-// Variáveis globais
-extern Game game;
-extern SDL_Renderer* renderer;
-
-// Declarações de funções globais
-void start_game(void);
-void reset_current_game(void);
-bool player_file_exists(const char *player_name);
 
 #endif

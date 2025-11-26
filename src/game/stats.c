@@ -2,7 +2,6 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <dirent.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -11,63 +10,105 @@
 #include <sys/stat.h>
 #endif
 
-void load_stats(PlayerStats *stats, const char *player_name) {
+void load_stats(PlayerStats *stats, const char *player_name)
+{
     strcpy(stats->name, player_name);
-    stats->games_played = 0;
-    stats->total_lines = 0;
+    stats->total_games = 0;
+    stats->total_blocks = 0;
     stats->total_score = 0;
     stats->best_score = 0;
 
     char filename[100];
-    snprintf(filename, sizeof(filename), "%s%s.txt", STATS_FOLDER, player_name);
+    snprintf(filename, sizeof(filename), "%splay_history_%s.dat", STATS_FOLDER, player_name);
 
-    FILE *file = fopen(filename, "r");
-    if (file) {
-        fscanf(file, "Jogos: %d\n", &stats->games_played);
-        fscanf(file, "Linhas: %d\n", &stats->total_lines);
-        fscanf(file, "Pontuacao Total: %d\n", &stats->total_score);
-        fscanf(file, "Melhor Pontuacao: %d\n", &stats->best_score);
+    FILE *file = fopen(filename, "rb");
+    if (file)
+    {
+        fread(stats, sizeof(PlayerStats), 1, file);
         fclose(file);
     }
 }
 
-void save_stats(const PlayerStats *stats) {
-    // Cria a pasta stats se não existir
-    #ifdef _WIN32
+void save_stats(const PlayerStats *stats)
+{
+// Cria a pasta stats se não existir
+#ifdef _WIN32
     system("mkdir stats 2>nul");
-    #else
+#else
     system("mkdir -p stats");
-    #endif
+#endif
 
     char filename[100];
-    snprintf(filename, sizeof(filename), "%s%s.txt", STATS_FOLDER, stats->name);
+    snprintf(filename, sizeof(filename), "%splay_history_%s.dat", STATS_FOLDER, stats->name);
 
-    FILE *file = fopen(filename, "w");
-    if (file) {
-        fprintf(file, "Jogos: %d\n", stats->games_played);
-        fprintf(file, "Linhas: %d\n", stats->total_lines);
-        fprintf(file, "Pontuacao Total: %d\n", stats->total_score);
-        fprintf(file, "Melhor Pontuacao: %d\n", stats->best_score);
+    FILE *file = fopen(filename, "wb");
+    if (file)
+    {
+        fwrite(stats, sizeof(PlayerStats), 1, file);
         fclose(file);
     }
 }
 
-void update_stats(PlayerStats *stats, int score, int lines) {
-    stats->games_played++;
-    stats->total_lines += lines;
+void update_stats(PlayerStats *stats, int score, int blocks)
+{
+    stats->total_games++;
+    stats->total_blocks += blocks;
     stats->total_score += score;
-    if (score > stats->best_score) {
+
+    if (score > stats->best_score)
+    {
         stats->best_score = score;
     }
+
+    // Adiciona a partida ao histórico
+    if (stats->total_games <= MAX_GAMES)
+    {
+        int index = stats->total_games - 1;
+        stats->games[index].game_number = stats->total_games;
+        stats->games[index].blocks_placed = blocks;
+        stats->games[index].score = score;
+    }
 }
 
-bool player_file_exists(const char *player_name) {
+bool player_file_exists(const char *player_name)
+{
     char filename[100];
-    snprintf(filename, sizeof(filename), "%s%s.txt", STATS_FOLDER, player_name);
-    FILE *file = fopen(filename, "r");
-    if (file) {
+    snprintf(filename, sizeof(filename), "%splay_history_%s.dat", STATS_FOLDER, player_name);
+    FILE *file = fopen(filename, "rb");
+    if (file)
+    {
         fclose(file);
         return true;
     }
     return false;
+}
+
+void save_last_player(const char *player_name)
+{
+#ifdef _WIN32
+    system("mkdir stats 2>nul");
+#else
+    system("mkdir -p stats");
+#endif
+
+    FILE *file = fopen("stats/last_player.dat", "wb");
+    if (file)
+    {
+        fwrite(player_name, sizeof(char), MAX_NAME_LENGTH, file);
+        fclose(file);
+    }
+}
+
+void load_last_player(char *player_name)
+{
+    FILE *file = fopen("stats/last_player.dat", "rb");
+    if (file)
+    {
+        fread(player_name, sizeof(char), MAX_NAME_LENGTH, file);
+        fclose(file);
+    }
+    else
+    {
+        player_name[0] = '\0';
+    }
 }
