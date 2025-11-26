@@ -10,10 +10,10 @@ BIN_DIR = bin
 
 # Arquivos fonte
 SOURCES = $(wildcard $(SRC_DIR)/*.c) \
-          $(wildcard $(SRC_DIR)/exit/*.c) \
-          $(wildcard $(SRC_DIR)/game/*.c) \
-          $(wildcard $(SRC_DIR)/menu/*.c) \
-          $(wildcard $(SRC_DIR)/utils/*.c)
+        $(wildcard $(SRC_DIR)/exit/*.c) \
+        $(wildcard $(SRC_DIR)/game/*.c) \
+        $(wildcard $(SRC_DIR)/menu/*.c) \
+        $(wildcard $(SRC_DIR)/utils/*.c)
 
 # Arquivos objeto
 OBJECTS = $(SOURCES:$(SRC_DIR)/%.c=$(OBJ_DIR)/%.o)
