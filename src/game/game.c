@@ -31,6 +31,9 @@ int current_x, current_y;
 int current_type;
 Uint32 last_time;
 
+// Próximas peças
+int next_pieces[3]; // Armazena os tipos das próximas 3 peças
+
 // Funções do jogo
 void init_grid()
 {
@@ -63,7 +66,27 @@ int merge_piece()
 
 void new_piece()
 {
-    current_type = rand() % 7;
+    // Se é a primeira peça, inicializa as próximas
+    static int first_piece = 1;
+    if (first_piece)
+    {
+        first_piece = 0;
+        for (int i = 0; i < 3; i++)
+        {
+            next_pieces[i] = rand() % 7;
+        }
+    }
+
+    // Usa a próxima peça
+    current_type = next_pieces[0];
+
+    // Atualiza a fila de próximas peças
+    for (int i = 0; i < 2; i++)
+    {
+        next_pieces[i] = next_pieces[i + 1];
+    }
+    next_pieces[2] = rand() % 7;
+
     current_x = GRID_WIDTH / 2 - 2;
     current_y = 0;
 
@@ -297,6 +320,176 @@ void draw_current_piece()
         }
     }
 }
+void draw_block_with_alpha(int x, int y, SDL_Color color, Uint8 alpha)
+{
+    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, alpha);
+    SDL_Rect rect = {
+        x * BLOCK_SIZE + 30,
+        y * BLOCK_SIZE + 50,
+        BLOCK_SIZE - 1,
+        BLOCK_SIZE - 1};
+    SDL_RenderFillRect(renderer, &rect);
+}
+
+// Nova função: desenha a projeção da peça (ghost piece)
+void draw_ghost_piece()
+{
+    SDL_Color color;
+    switch (current_type + 1)
+    {
+    case CYAN:
+        color = (SDL_Color){0, 255, 255, 255};
+        break;
+    case BLUE:
+        color = (SDL_Color){0, 0, 255, 255};
+        break;
+    case ORANGE:
+        color = (SDL_Color){255, 127, 0, 255};
+        break;
+    case YELLOW:
+        color = (SDL_Color){255, 255, 0, 255};
+        break;
+    case GREEN:
+        color = (SDL_Color){0, 255, 0, 255};
+        break;
+    case PURPLE:
+        color = (SDL_Color){128, 0, 128, 255};
+        break;
+    case RED:
+        color = (SDL_Color){255, 0, 0, 255};
+        break;
+    default:
+        color = (SDL_Color){255, 255, 255, 255};
+    }
+
+    // Encontra a posição Y da ghost piece
+    int ghost_y = current_y;
+    while (true)
+    {
+        ghost_y++;
+        for (int y = 0; y < 4; y++)
+        {
+            for (int x = 0; x < 4; x++)
+            {
+                if (current_piece[y][x])
+                {
+                    int new_x = current_x + x;
+                    int new_y = ghost_y + y;
+
+                    if (new_y >= GRID_HEIGHT || (new_y >= 0 && grid[new_y][new_x] != EMPTY))
+                    {
+                        ghost_y--; // Volta uma posição
+                        goto draw_ghost;
+                    }
+                }
+            }
+        }
+    }
+
+draw_ghost:
+    // Habilita o blending para transparência
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_BLEND);
+
+    // Define a cor com transparência (alpha = 80 para ~30% de opacidade)
+    SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, 80);
+
+    for (int y = 0; y < 4; y++)
+    {
+        for (int x = 0; x < 4; x++)
+        {
+            if (current_piece[y][x])
+            {
+                SDL_Rect rect = {
+                    (current_x + x) * BLOCK_SIZE + 30,
+                    (ghost_y + y) * BLOCK_SIZE + 50,
+                    BLOCK_SIZE - 1,
+                    BLOCK_SIZE - 1};
+                SDL_RenderFillRect(renderer, &rect);
+            }
+        }
+    }
+
+    // Desabilita o blending para o resto do desenho
+    SDL_SetRenderDrawBlendMode(renderer, SDL_BLENDMODE_NONE);
+}
+// Nova função: desenha as próximas peças
+void draw_next_pieces()
+{
+    // Calcula a posição baseada no grid (50px à direita do grid)
+    int grid_right = 30 + (GRID_WIDTH * BLOCK_SIZE);
+    int panel_x = grid_right + 50; // 50px de distância do grid
+    int panel_y = 100;             // Ajuste a posição vertical conforme necessário
+
+    SDL_Color white = {255, 255, 255, 255};
+
+    // Título
+    draw_text("PROXIMAS PECAS", panel_x, panel_y, 24, white);
+    panel_y += 40;
+
+    // Desenha as próximas 3 peças
+    for (int i = 0; i < 3; i++)
+    {
+        int piece_type = next_pieces[i];
+        SDL_Color color;
+
+        switch (piece_type + 1)
+        {
+        case CYAN:
+            color = (SDL_Color){0, 255, 255, 255};
+            break;
+        case BLUE:
+            color = (SDL_Color){0, 0, 255, 255};
+            break;
+        case ORANGE:
+            color = (SDL_Color){255, 127, 0, 255};
+            break;
+        case YELLOW:
+            color = (SDL_Color){255, 255, 0, 255};
+            break;
+        case GREEN:
+            color = (SDL_Color){0, 255, 0, 255};
+            break;
+        case PURPLE:
+            color = (SDL_Color){128, 0, 128, 255};
+            break;
+        case RED:
+            color = (SDL_Color){255, 0, 0, 255};
+            break;
+        default:
+            color = (SDL_Color){255, 255, 255, 255};
+        }
+
+        SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+
+        // Desenha a peça em uma posição específica para cada uma das próximas
+        int base_x = panel_x + 100;
+        int base_y = panel_y + (i * 120); // Espaço entre as peças
+
+        for (int y = 0; y < 4; y++)
+        {
+            for (int x = 0; x < 4; x++)
+            {
+                if (tetrominos[piece_type][y][x])
+                {
+                    SDL_Rect rect = {
+                        base_x + (x * (BLOCK_SIZE - 10)), // Blocos menores para preview
+                        base_y + (y * (BLOCK_SIZE - 10)),
+                        BLOCK_SIZE - 15, // Blocos menores
+                        BLOCK_SIZE - 15};
+                    SDL_RenderFillRect(renderer, &rect);
+                }
+            }
+        }
+
+        // Adiciona um pequeno separador entre as peças
+        if (i < 2)
+        {
+            SDL_SetRenderDrawColor(renderer, 100, 100, 100, 255);
+            SDL_Rect separator = {panel_x, base_y + 70, 250, 2};
+            SDL_RenderFillRect(renderer, &separator);
+        }
+    }
+}
 
 void display_game_stats()
 {
@@ -426,11 +619,14 @@ void update_game()
     }
 }
 
+// Modifica a função render_game para incluir as novas funcionalidades
 void render_game()
 {
     draw_grid();
+    draw_ghost_piece(); // Desenha a projeção primeiro (por baixo)
     draw_current_piece();
     display_game_stats();
+    draw_next_pieces(); // Desenha as próximas peças
 }
 
 void cleanup_game()

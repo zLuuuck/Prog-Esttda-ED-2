@@ -6,7 +6,7 @@
 
 // Configurações da janela
 #define SCREEN_WIDTH 1280
-#define SCREEN_HEIGHT 729
+#define SCREEN_HEIGHT 720
 #define BLOCK_SIZE 30
 #define GRID_WIDTH 10
 #define GRID_HEIGHT 20

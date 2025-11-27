@@ -1,6 +1,7 @@
 #include "utils.h"
 #include "../game/game.h"
 #include "../menu/menu.h"
+#include "../menu/credits.h"
 #include "../global.h"
 #include <stdio.h>
 
@@ -75,6 +76,35 @@ void draw_text(const char *text, int x, int y, int size, SDL_Color color)
     }
 }
 
+void draw_centered_text(const char* text, int y, int size, SDL_Color color) {
+    TTF_Font* font_to_use;
+    // Seleciona a fonte baseada no tamanho (mesma lógica de draw_text)
+    if (size <= 20)
+        font_to_use = font_small;
+    else if (size <= 24)
+        font_to_use = font_medium;
+    else
+        font_to_use = font_large;
+    if (!font_to_use) {
+        // Fallback: desenha retângulos (como em draw_text)
+        SDL_SetRenderDrawColor(renderer, color.r, color.g, color.b, color.a);
+        int len = strlen(text);
+        for (int i = 0; i < len; i++) {
+            SDL_Rect char_rect = {(SCREEN_WIDTH / 2) - (len * (size / 2) / 2) + i * (size / 2), y, size / 3, size};
+            SDL_RenderFillRect(renderer, &char_rect);
+        }
+        return;
+    }
+    // Mede a largura do texto
+    int text_width, text_height;
+    TTF_SizeText(font_to_use, text, &text_width, &text_height);
+    // Calcula a posição X centralizada
+    int center_x = SCREEN_WIDTH / 2;
+    int x = center_x - (text_width / 2);
+    // Desenha o texto na posição calculada
+    draw_text(text, x, y, size, color);
+}
+
 void draw_button(Button *button)
 {
     // Cor do botão baseada no estado
@@ -134,10 +164,7 @@ void handle_events()
             handle_history_events(&e); // Nova função
             break;
         case CREDITS:
-            if (e.type == SDL_KEYDOWN && e.key.keysym.sym == SDLK_ESCAPE)
-            {
-                game.current_state = MENU_MAIN;
-            }
+            handle_credits_events(&e); 
             break;
         }
     }
@@ -177,8 +204,7 @@ void render()
         render_history();
         break;
     case CREDITS:
-        draw_text("CREDITOS - EM BREVE", (SCREEN_WIDTH - 250) / 2, 100, 32, (SDL_Color){255, 255, 255, 255});
-        draw_text("Pressione ESC para voltar", (SCREEN_WIDTH - 250) / 2, 200, 20, (SDL_Color){255, 255, 255, 255});
+        render_credits();  // Altere esta linha
         break;
     }
 

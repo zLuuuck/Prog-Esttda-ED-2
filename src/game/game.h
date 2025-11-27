@@ -44,9 +44,15 @@ int calculate_score(int lines_cleared);
 void reset_current_game(void);
 bool player_file_exists(const char *player_name);
 
+// Novas funções para as funcionalidades extras
+void draw_ghost_piece(void);
+void draw_next_pieces(void);
+int get_ghost_y_position(void);
+
 // Variáveis globais do jogo (declaradas em game.c)
 extern BlockType grid[GRID_HEIGHT][GRID_WIDTH];
 extern int current_piece[4][4];
 extern int current_x, current_y, current_type;
+extern int next_pieces[3]; // Array para armazenar as próximas 3 peças
 
 #endif
