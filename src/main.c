@@ -1,13 +1,11 @@
-#include "main.h"
+#include "global.h"  // Mude de main.h para global.h
 #include "game/game.h"
 #include "menu/menu.h"
 #include "exit/exit.h"
 #include "utils/utils.h"
 #include "game/stats.h"
 
-// Variáveis globais
-Game game = {MENU_MAIN, true, "", {0, 0, 1}, true};
-SDL_Renderer* renderer = NULL;
+// REMOVA as definições de game e renderer daqui - elas estão em global.c agora
 
 int main() {
     SDL_Init(SDL_INIT_VIDEO);
@@ -24,6 +22,14 @@ int main() {
     init_fonts();
     init_game();
     init_menu();
+    
+    // Carrega o último jogador
+    load_last_player(game.player_name);
+    if (strlen(game.player_name) > 0) {
+        game.is_new_player = false;
+        // Carrega as estatísticas do jogador
+        load_stats(&current_player_stats, game.player_name);
+    }
     
     // Verificar se existem jogadores
     check_existing_players();

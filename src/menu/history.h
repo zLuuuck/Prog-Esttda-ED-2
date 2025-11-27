@@ -3,17 +3,18 @@
 
 #include "../game/stats.h"
 
-#define MAX_history 10
+#define MAX_HISTORY 10
 
-typedef struct {
-    PlayerStats history[MAX_history];
+typedef struct
+{
+    PlayerStats history[MAX_HISTORY];
     int count;
 } History;
 
-void init_history(History * hist);
-void load_history(History * hist);
-void save_history(const History * hist);
-void add_to_history(History * hist, const PlayerStats *stats);
+void init_history(History *hist);
+void load_history(History *hist);
+void save_history(const History *hist);
+void add_to_history(History *hist, const PlayerStats *stats);
 void render_history(void);
 
 #endif

@@ -1,0 +1,4 @@
+Jogos: 2
+Linhas: 0
+Pontuacao Total: 0
+Melhor Pontuacao: 0

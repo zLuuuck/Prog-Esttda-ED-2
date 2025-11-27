@@ -1,6 +1,7 @@
 #include "utils.h"
 #include "../game/game.h"
 #include "../menu/menu.h"
+#include "../global.h"
 #include <stdio.h>
 
 // Variáveis para fontes

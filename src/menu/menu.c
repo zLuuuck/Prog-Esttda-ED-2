@@ -1,6 +1,7 @@
 #include "menu.h"
 #include "../utils/utils.h"
-#include "../game/game.h" 
+#include "../game/game.h"
+#include "../global.h"
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -18,7 +19,8 @@ bool input_active = false;
 char existing_players[10][50];
 int existing_players_count = 0;
 
-void init_menu() {
+void init_menu()
+{
     // Menu principal - centralizado
     int center_x = SCREEN_WIDTH / 2 - 100;
     int center_y = SCREEN_HEIGHT / 2 - 100;
@@ -27,7 +29,7 @@ void init_menu() {
     history_button = (Button){{center_x, center_y + 70, 200, 50}, "history", false};
     credits_button = (Button){{center_x, center_y + 140, 200, 50}, "Creditos", false};
     exit_button = (Button){{center_x, center_y + 210, 200, 50}, "Sair", false};
-    
+
     // Menu de input do jogador
     start_button = (Button){{center_x, center_y + 150, 200, 50}, "Iniciar", false};
     back_button = (Button){{center_x, center_y + 210, 200, 50}, "Voltar", false};
@@ -49,9 +51,9 @@ void check_existing_players() {
     
     // Abordagem portável: usar comando do sistema para listar arquivos
     #ifdef _WIN32
-    FILE *pipe = _popen("dir /b stats\\*.txt 2>nul", "r");
+    FILE *pipe = _popen("dir /b stats\\play_history_*.dat 2>nul", "r");
     #else
-    FILE *pipe = popen("find stats -name \"*.txt\" -exec basename {} .txt \\; 2>/dev/null", "r");
+    FILE *pipe = popen("find stats -name \"play_history_*.dat\" -exec basename {} .dat \\; 2>/dev/null", "r");
     #endif
     
     if (pipe) {
@@ -60,8 +62,14 @@ void check_existing_players() {
             // Remove quebra de linha
             filename[strcspn(filename, "\r\n")] = 0;
             
-            if (strlen(filename) > 0) {
-                strncpy(existing_players[existing_players_count], filename, 49);
+            // Remove o prefixo "play_history_"
+            char *player_name = filename;
+            if (strstr(player_name, "play_history_") == player_name) {
+                player_name += strlen("play_history_");
+            }
+            
+            if (strlen(player_name) > 0) {
+                strncpy(existing_players[existing_players_count], player_name, 49);
                 existing_players[existing_players_count][49] = '\0';
                 existing_players_count++;
             }
@@ -94,6 +102,7 @@ void handle_menu_events(SDL_Event *e)
             {
                 // Já tem jogador, ir direto para o jogo
                 game.is_new_player = false;
+                save_last_player(game.player_name); // Salva como último jogador
                 game.current_state = GAME_ACTIVE;
                 start_game();
             }
@@ -121,6 +130,7 @@ void handle_menu_events(SDL_Event *e)
 
 void handle_player_input_events(SDL_Event *e)
 {
+
     int mouse_x, mouse_y;
     SDL_GetMouseState(&mouse_x, &mouse_y);
 
@@ -137,6 +147,7 @@ void handle_player_input_events(SDL_Event *e)
         {
             strcpy(game.player_name, player_input);
             game.is_new_player = !player_file_exists(game.player_name);
+            save_last_player(game.player_name); // Salva como último jogador
             game.current_state = GAME_ACTIVE;
             start_game();
         }
