@@ -15,10 +15,6 @@ Button resume_button, pause_exit_button;
 char player_input[50] = "";
 bool input_active = false;
 
-// Lista de jogadores existentes
-char existing_players[10][50];
-int existing_players_count = 0;
-
 void init_menu()
 {
     // Menu principal - centralizado
@@ -26,7 +22,7 @@ void init_menu()
     int center_y = SCREEN_HEIGHT / 2 - 100;
 
     play_button = (Button){{center_x, center_y, 200, 50}, "Jogar", false};
-    history_button = (Button){{center_x, center_y + 70, 200, 50}, "history", false};
+    history_button = (Button){{center_x, center_y + 70, 200, 50}, "Histórico", false};
     credits_button = (Button){{center_x, center_y + 140, 200, 50}, "Creditos", false};
     exit_button = (Button){{center_x, center_y + 210, 200, 50}, "Sair", false};
 
@@ -38,50 +34,6 @@ void init_menu()
     resume_button = (Button){{center_x, center_y, 200, 50}, "Continuar", false};
     pause_exit_button = (Button){{center_x, center_y + 70, 200, 50}, "Sair", false};
 }
-
-void check_existing_players() {
-    existing_players_count = 0;
-    
-    // Cria a pasta stats se não existir
-    #ifdef _WIN32
-    system("mkdir stats 2>nul");
-    #else
-    system("mkdir -p stats");
-    #endif
-    
-    // Abordagem portável: usar comando do sistema para listar arquivos
-    #ifdef _WIN32
-    FILE *pipe = _popen("dir /b stats\\play_history_*.dat 2>nul", "r");
-    #else
-    FILE *pipe = popen("find stats -name \"play_history_*.dat\" -exec basename {} .dat \\; 2>/dev/null", "r");
-    #endif
-    
-    if (pipe) {
-        char filename[100];
-        while (fgets(filename, sizeof(filename), pipe) != NULL && existing_players_count < 10) {
-            // Remove quebra de linha
-            filename[strcspn(filename, "\r\n")] = 0;
-            
-            // Remove o prefixo "play_history_"
-            char *player_name = filename;
-            if (strstr(player_name, "play_history_") == player_name) {
-                player_name += strlen("play_history_");
-            }
-            
-            if (strlen(player_name) > 0) {
-                strncpy(existing_players[existing_players_count], player_name, 49);
-                existing_players[existing_players_count][49] = '\0';
-                existing_players_count++;
-            }
-        }
-        #ifdef _WIN32
-        _pclose(pipe);
-        #else
-        pclose(pipe);
-        #endif
-    }
-}
-
 void handle_menu_events(SDL_Event *e)
 {
     int mouse_x, mouse_y;
@@ -97,18 +49,16 @@ void handle_menu_events(SDL_Event *e)
     {
         if (play_button.hovered)
         {
-            check_existing_players();
-            if (existing_players_count > 0 && strlen(game.player_name) > 0)
+            // Se já temos dados salvos, vai direto para o jogo
+            if (player_data_exists() && strlen(current_player_stats.name) > 0)
             {
-                // Já tem jogador, ir direto para o jogo
                 game.is_new_player = false;
-                save_last_player(game.player_name); // Salva como último jogador
                 game.current_state = GAME_ACTIVE;
                 start_game();
             }
             else
             {
-                // Novo jogador ou sem jogador selecionado
+                // Novo jogador
                 game.current_state = MENU_PLAYER_INPUT;
                 strcpy(player_input, "");
             }
@@ -130,7 +80,6 @@ void handle_menu_events(SDL_Event *e)
 
 void handle_player_input_events(SDL_Event *e)
 {
-
     int mouse_x, mouse_y;
     SDL_GetMouseState(&mouse_x, &mouse_y);
 
@@ -146,8 +95,8 @@ void handle_player_input_events(SDL_Event *e)
         if (start_button.hovered && strlen(player_input) > 0)
         {
             strcpy(game.player_name, player_input);
-            game.is_new_player = !player_file_exists(game.player_name);
-            save_last_player(game.player_name); // Salva como último jogador
+            strcpy(current_player_stats.name, player_input);
+            game.is_new_player = true;
             game.current_state = GAME_ACTIVE;
             start_game();
         }
@@ -168,7 +117,8 @@ void handle_player_input_events(SDL_Event *e)
             if (strlen(player_input) > 0)
             {
                 strcpy(game.player_name, player_input);
-                game.is_new_player = !player_file_exists(game.player_name);
+                strcpy(current_player_stats.name, player_input);
+                game.is_new_player = true;
                 game.current_state = GAME_ACTIVE;
                 start_game();
             }
