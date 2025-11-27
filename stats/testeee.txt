@@ -1,4 +1,0 @@
-Jogos: 1
-Linhas: 5
-Pontuacao Total: 700
-Melhor Pontuacao: 700
